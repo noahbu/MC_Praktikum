@@ -1,0 +1,254 @@
+
+Seriell.elf:     file format elf32-avr
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .text         000000f6  00000000  00000000  00000054  2**1
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  1 .data         00000000  00800060  00800060  0000014a  2**0
+                  CONTENTS, ALLOC, LOAD, DATA
+  2 .comment      00000030  00000000  00000000  0000014a  2**0
+                  CONTENTS, READONLY
+  3 .note.gnu.avr.deviceinfo 0000003c  00000000  00000000  0000017c  2**2
+                  CONTENTS, READONLY
+  4 .debug_aranges 00000020  00000000  00000000  000001b8  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  5 .debug_info   000005d9  00000000  00000000  000001d8  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  6 .debug_abbrev 00000528  00000000  00000000  000007b1  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  7 .debug_line   000002aa  00000000  00000000  00000cd9  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  8 .debug_frame  00000024  00000000  00000000  00000f84  2**2
+                  CONTENTS, READONLY, DEBUGGING
+  9 .debug_str    00000329  00000000  00000000  00000fa8  2**0
+                  CONTENTS, READONLY, DEBUGGING
+ 10 .debug_loc    000000b8  00000000  00000000  000012d1  2**0
+                  CONTENTS, READONLY, DEBUGGING
+ 11 .debug_ranges 00000010  00000000  00000000  00001389  2**0
+                  CONTENTS, READONLY, DEBUGGING
+
+Disassembly of section .text:
+
+00000000 <__vectors>:
+   0:	12 c0       	rjmp	.+36     	; 0x26 <__ctors_end>
+   2:	19 c0       	rjmp	.+50     	; 0x36 <__bad_interrupt>
+   4:	18 c0       	rjmp	.+48     	; 0x36 <__bad_interrupt>
+   6:	17 c0       	rjmp	.+46     	; 0x36 <__bad_interrupt>
+   8:	16 c0       	rjmp	.+44     	; 0x36 <__bad_interrupt>
+   a:	15 c0       	rjmp	.+42     	; 0x36 <__bad_interrupt>
+   c:	14 c0       	rjmp	.+40     	; 0x36 <__bad_interrupt>
+   e:	13 c0       	rjmp	.+38     	; 0x36 <__bad_interrupt>
+  10:	12 c0       	rjmp	.+36     	; 0x36 <__bad_interrupt>
+  12:	11 c0       	rjmp	.+34     	; 0x36 <__bad_interrupt>
+  14:	10 c0       	rjmp	.+32     	; 0x36 <__bad_interrupt>
+  16:	0f c0       	rjmp	.+30     	; 0x36 <__bad_interrupt>
+  18:	0e c0       	rjmp	.+28     	; 0x36 <__bad_interrupt>
+  1a:	0d c0       	rjmp	.+26     	; 0x36 <__bad_interrupt>
+  1c:	0c c0       	rjmp	.+24     	; 0x36 <__bad_interrupt>
+  1e:	0b c0       	rjmp	.+22     	; 0x36 <__bad_interrupt>
+  20:	0a c0       	rjmp	.+20     	; 0x36 <__bad_interrupt>
+  22:	09 c0       	rjmp	.+18     	; 0x36 <__bad_interrupt>
+  24:	08 c0       	rjmp	.+16     	; 0x36 <__bad_interrupt>
+
+00000026 <__ctors_end>:
+  26:	11 24       	eor	r1, r1
+  28:	1f be       	out	0x3f, r1	; 63
+  2a:	cf e5       	ldi	r28, 0x5F	; 95
+  2c:	d4 e0       	ldi	r29, 0x04	; 4
+  2e:	de bf       	out	0x3e, r29	; 62
+  30:	cd bf       	out	0x3d, r28	; 61
+  32:	02 d0       	rcall	.+4      	; 0x38 <main>
+  34:	5e c0       	rjmp	.+188    	; 0xf2 <_exit>
+
+00000036 <__bad_interrupt>:
+  36:	e4 cf       	rjmp	.-56     	; 0x0 <__vectors>
+
+00000038 <main>:
+
+int main(void)
+{
+	
+	//Baudrate für UART einstellen
+	UBRRH = UBRRH_VALUE;
+  38:	10 bc       	out	0x20, r1	; 32
+	UBRRL = UBRRL_VALUE;
+  3a:	82 e2       	ldi	r24, 0x22	; 34
+  3c:	89 b9       	out	0x09, r24	; 9
+	
+	# if USE_2X
+	UCSRA |= (1<<U2X);
+  3e:	8b b1       	in	r24, 0x0b	; 11
+  40:	82 60       	ori	r24, 0x02	; 2
+  42:	8b b9       	out	0x0b, r24	; 11
+	
+	// Format einstellen: 8data, 1stop, no parity (8N1-Modus)
+	// DIeser ist im default schon eingstellt, deswegen keine Änderungen
+	
+	//enable transmitter and receiver
+	UCSRB |= (1<<TXEN)|(1<<RXEN);
+  44:	8a b1       	in	r24, 0x0a	; 10
+  46:	88 61       	ori	r24, 0x18	; 24
+  48:	8a b9       	out	0x0a, r24	; 10
+	
+	// variablen erstellen
+	
+	uint8_t rec; //Variable für ein über UART empfangenes zeichen
+	uint8_t pause = 1; //Variable für die Pause zwischen zwei signalen
+	uint8_t counter = 0; // Zähler für versendetes zeichen
+  4a:	80 e0       	ldi	r24, 0x00	; 0
+	UCSRB |= (1<<TXEN)|(1<<RXEN);
+	
+	// variablen erstellen
+	
+	uint8_t rec; //Variable für ein über UART empfangenes zeichen
+	uint8_t pause = 1; //Variable für die Pause zwischen zwei signalen
+  4c:	21 e0       	ldi	r18, 0x01	; 1
+  4e:	0c c0       	rjmp	.+24     	; 0x68 <__SREG__+0x29>
+    {
+		//abfragen, ob sich im EIngangsbuffer ein ungelesenes Zeichen befindet
+
+		while(UCSRA & (1<<RXC)){
+			//lese empfangenes zeichen aus buffer
+			rec = UDR;
+  50:	9c b1       	in	r25, 0x0c	; 12
+			
+			//empfangenes Zeichen auswerten
+			if (rec == '+' && pause >1)
+  52:	9b 32       	cpi	r25, 0x2B	; 43
+  54:	21 f4       	brne	.+8      	; 0x5e <__SREG__+0x1f>
+  56:	22 30       	cpi	r18, 0x02	; 2
+  58:	10 f0       	brcs	.+4      	; 0x5e <__SREG__+0x1f>
+			{
+				pause--; //schneller senden
+  5a:	21 50       	subi	r18, 0x01	; 1
+  5c:	05 c0       	rjmp	.+10     	; 0x68 <__SREG__+0x29>
+			}
+			else if (rec == '-' && pause <254)
+  5e:	9d 32       	cpi	r25, 0x2D	; 45
+  60:	19 f4       	brne	.+6      	; 0x68 <__SREG__+0x29>
+  62:	2e 3f       	cpi	r18, 0xFE	; 254
+  64:	08 f4       	brcc	.+2      	; 0x68 <__SREG__+0x29>
+			{
+				pause++; // langsamer senden
+  66:	2f 5f       	subi	r18, 0xFF	; 255
+	
+    while (1) 
+    {
+		//abfragen, ob sich im EIngangsbuffer ein ungelesenes Zeichen befindet
+
+		while(UCSRA & (1<<RXC)){
+  68:	5f 99       	sbic	0x0b, 7	; 11
+  6a:	f2 cf       	rjmp	.-28     	; 0x50 <__SREG__+0x11>
+			
+		}
+	
+		
+		//Zäherwert senden
+		UDR = ('0' + counter);
+  6c:	90 e3       	ldi	r25, 0x30	; 48
+  6e:	98 0f       	add	r25, r24
+  70:	9c b9       	out	0x0c, r25	; 12
+		//Zählweert erhöhen und durch Modulo begrenzen auf 0-9
+		
+		counter = (counter+1)%10;
+  72:	90 e0       	ldi	r25, 0x00	; 0
+  74:	01 96       	adiw	r24, 0x01	; 1
+  76:	6a e0       	ldi	r22, 0x0A	; 10
+  78:	70 e0       	ldi	r23, 0x00	; 0
+  7a:	14 d0       	rcall	.+40     	; 0xa4 <__divmodhi4>
+		
+		//warten bis zeichen verschickt sind
+		while(!(UCSRA & (1<<TXC)));
+  7c:	5e 9b       	sbis	0x0b, 6	; 11
+  7e:	fe cf       	rjmp	.-4      	; 0x7c <__SREG__+0x3d>
+		
+		// Flag händisch auf Null setzten
+		
+		UCSRA |=(1<<TXC);
+  80:	9b b1       	in	r25, 0x0b	; 11
+  82:	90 64       	ori	r25, 0x40	; 64
+  84:	9b b9       	out	0x0b, r25	; 11
+		
+		//warten gemäß definierter Pause
+		for(uint8_t i=0; i<pause;i++)
+  86:	90 e0       	ldi	r25, 0x00	; 0
+  88:	0a c0       	rjmp	.+20     	; 0x9e <__SREG__+0x5f>
+	#else
+		//round up by default
+		__ticks_dc = (uint32_t)(ceil(fabs(__tmp)));
+	#endif
+
+	__builtin_avr_delay_cycles(__ticks_dc);
+  8a:	3f ef       	ldi	r19, 0xFF	; 255
+  8c:	41 ee       	ldi	r20, 0xE1	; 225
+  8e:	54 e0       	ldi	r21, 0x04	; 4
+  90:	31 50       	subi	r19, 0x01	; 1
+  92:	40 40       	sbci	r20, 0x00	; 0
+  94:	50 40       	sbci	r21, 0x00	; 0
+  96:	e1 f7       	brne	.-8      	; 0x90 <__SREG__+0x51>
+  98:	00 c0       	rjmp	.+0      	; 0x9a <__SREG__+0x5b>
+  9a:	00 00       	nop
+  9c:	9f 5f       	subi	r25, 0xFF	; 255
+  9e:	92 17       	cp	r25, r18
+  a0:	a0 f3       	brcs	.-24     	; 0x8a <__SREG__+0x4b>
+  a2:	e2 cf       	rjmp	.-60     	; 0x68 <__SREG__+0x29>
+
+000000a4 <__divmodhi4>:
+  a4:	97 fb       	bst	r25, 7
+  a6:	07 2e       	mov	r0, r23
+  a8:	16 f4       	brtc	.+4      	; 0xae <__divmodhi4+0xa>
+  aa:	00 94       	com	r0
+  ac:	06 d0       	rcall	.+12     	; 0xba <__divmodhi4_neg1>
+  ae:	77 fd       	sbrc	r23, 7
+  b0:	08 d0       	rcall	.+16     	; 0xc2 <__divmodhi4_neg2>
+  b2:	0b d0       	rcall	.+22     	; 0xca <__udivmodhi4>
+  b4:	07 fc       	sbrc	r0, 7
+  b6:	05 d0       	rcall	.+10     	; 0xc2 <__divmodhi4_neg2>
+  b8:	3e f4       	brtc	.+14     	; 0xc8 <__divmodhi4_exit>
+
+000000ba <__divmodhi4_neg1>:
+  ba:	90 95       	com	r25
+  bc:	81 95       	neg	r24
+  be:	9f 4f       	sbci	r25, 0xFF	; 255
+  c0:	08 95       	ret
+
+000000c2 <__divmodhi4_neg2>:
+  c2:	70 95       	com	r23
+  c4:	61 95       	neg	r22
+  c6:	7f 4f       	sbci	r23, 0xFF	; 255
+
+000000c8 <__divmodhi4_exit>:
+  c8:	08 95       	ret
+
+000000ca <__udivmodhi4>:
+  ca:	aa 1b       	sub	r26, r26
+  cc:	bb 1b       	sub	r27, r27
+  ce:	51 e1       	ldi	r21, 0x11	; 17
+  d0:	07 c0       	rjmp	.+14     	; 0xe0 <__udivmodhi4_ep>
+
+000000d2 <__udivmodhi4_loop>:
+  d2:	aa 1f       	adc	r26, r26
+  d4:	bb 1f       	adc	r27, r27
+  d6:	a6 17       	cp	r26, r22
+  d8:	b7 07       	cpc	r27, r23
+  da:	10 f0       	brcs	.+4      	; 0xe0 <__udivmodhi4_ep>
+  dc:	a6 1b       	sub	r26, r22
+  de:	b7 0b       	sbc	r27, r23
+
+000000e0 <__udivmodhi4_ep>:
+  e0:	88 1f       	adc	r24, r24
+  e2:	99 1f       	adc	r25, r25
+  e4:	5a 95       	dec	r21
+  e6:	a9 f7       	brne	.-22     	; 0xd2 <__udivmodhi4_loop>
+  e8:	80 95       	com	r24
+  ea:	90 95       	com	r25
+  ec:	bc 01       	movw	r22, r24
+  ee:	cd 01       	movw	r24, r26
+  f0:	08 95       	ret
+
+000000f2 <_exit>:
+  f2:	f8 94       	cli
+
+000000f4 <__stop_program>:
+  f4:	ff cf       	rjmp	.-2      	; 0xf4 <__stop_program>
