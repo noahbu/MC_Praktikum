@@ -1,4 +1,4 @@
-/* Einbinden der benötigten Standardbibliotheken */
+/* Einbinden der benï¿½tigten Standardbibliotheken */
 #include <stdio.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -26,19 +26,19 @@ volatile int8_t sampleFlag = 0;
 						- BALANCIERREGLER
 						- TRAJEKTORIENREGLER
 						- TESTING */
-uint8_t activeController = BALANCIERREGLER;
+uint8_t activeController = MANUELLE_STEUERUNG;
 
 /* Hauptfunktion */
 int main(void)
 {	
-	/* LEDs als Ausgänge setzen */
+	/* LEDs als Ausgï¿½nge setzen */
 	DDRA |= (1<<LED_GRUEN);
 	DDRA |= (1<<LED_GELB);
 	DDRA |= (1<<LED_ROT);
 	DDRB |= (1<<LED_GRUENB);
 	
 	/* Initialisierung starten */
-	// LED auf rot --> Kleinroboter nicht anfassen währen Initialisierung
+	// LED auf rot --> Kleinroboter nicht anfassen wï¿½hren Initialisierung
 	PORTA |= (1<<LED_ROT);
 	_delay_ms(1000);
 	
@@ -65,19 +65,19 @@ int main(void)
 	reglerTrajektorienfolge_init();
 	reglerBalancieren_init();			
 	
-	/* Initialisierung abschließen */
+	/* Initialisierung abschlieï¿½en */
 	// Akku Notabschaltung
 	akku_check();
 	// Interrupts einschalten
 	sei();
-	// Über UART mitteilen, dass die Initialisierung abgeschlossen ist
+	// ï¿½ber UART mitteilen, dass die Initialisierung abgeschlossen ist
 	uart_puts((uint8_t*)"FINISHED INITIALIZATION\r\n");
 	// Rote LED aus --> Kleinroboter darf wieder bewegt werden
 	PORTA &= ~(1<<LED_ROT);
 	
 	/* Programstart */
 	PORTA |= (1<<LED_GELB);
-	// Warten bis der Taster gedrückt wird
+	// Warten bis der Taster gedrï¿½ckt wird
 	while((PINB & (1<<PB2)));
 	_delay_ms(1000);
 	PORTA &= ~(1<<LED_GELB);
@@ -86,10 +86,10 @@ int main(void)
 	/* Hauptprogramm */
 	while(1)
     {		
-		/* Regler ausführen wenn das Sampleflag gesetzt wurde */
+		/* Regler ausfï¿½hren wenn das Sampleflag gesetzt wurde */
 		if(sampleFlag)
 		{					
-			// Sampleflag zurücksetzen
+			// Sampleflag zurï¿½cksetzen
 			sampleFlag = 0;
 				
 			if(activeController == MANUELLE_STEUERUNG) {
@@ -100,13 +100,23 @@ int main(void)
 				reglerBalancieren_regelung();
 			} else if(activeController == TRAJEKTORIENREGLER) {
 				/* Vorsteuerung und Regelung
-					Bitte die zum jeweils benötigten Funktionen einkommentieren */
+					Bitte die zum jeweils benï¿½tigten Funktionen einkommentieren */
 				float u1_B, u2_B, x1_B, x2_B, x3_B;
 				reglerTrajektorienfolge_beobachter(&u1_B, &u2_B, &x1_B, &x2_B, &x3_B);
 				// reglerTrajektorienfolge_steuerung();
 				reglerTrajektorienfolge_regelung(u1_B, u2_B, x1_B, x2_B, x3_B);
 			} else if(activeController == TESTING) {
 				/* CODE START */
+				motor_pwm (1, 0.5);
+				_delay_ms(1000);
+				motor_pwm (1, -0.2);
+				_delay_ms(1000);
+				motor_pwm (1, 0);
+				motor_pwm (0, 1);
+				_delay_ms(1000);
+				motor_pwm (0, -1);
+				_delay_ms(1000);
+				motor_pwm (0, 0);
 				/* CODE END */
 			}
 			
@@ -123,6 +133,6 @@ int main(void)
 ISR(TIMER0_COMP_vect) {
 	// Setzen der Sample-Flag
 	sampleFlag = 1;
-	// Toggle der roten LED um sehen zu können ob der Interrupt ausgeführt wird
+	// Toggle der roten LED um sehen zu kï¿½nnen ob der Interrupt ausgefï¿½hrt wird
 	PORTB ^= (1<<LED_GRUENB);
 }

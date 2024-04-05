@@ -21,21 +21,30 @@
 #define FLAG_R 1
 
 /* CODE START */
+#define MAX_PWM 99;
+
+
+float forward ;
+float backward;
+float left;
+float right;
+
 /* CODE END */
 
-/* Initialisierungsroutine für die Motoransteuerung	*/
+/* Initialisierungsroutine fï¿½r die Motoransteuerung	*/
 void motor_init(void);
 /* Routine zur Ansteuerung der Motoren mit Kennlinienkorrektur */
 void motor_setVel(float vSollLinks, float vSollRechts);
 /* Routine zur manuellen Steuerung per UART */
 void motor_manualCtrl(void);
-/* Routine zum Auslesen der Radgeschwindigkeiten in cm/s über die Decoder */
+/* Routine zum Auslesen der Radgeschwindigkeiten in cm/s ï¿½ber die Decoder */
 void motor_getVel(float* vMessLinks, float* vMessRechts);
 
 /* Routine zur Ansteuerung der Motoren per %DutyCycle */
 void motor_pwm(uint8_t motorId, float pwm_duty);
 
 /* CODE START */
+
 /* CODE END */
 
 #endif /* MOTOR_H_ */
