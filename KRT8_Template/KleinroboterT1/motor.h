@@ -21,7 +21,7 @@
 #define FLAG_R 1
 
 /* CODE START */
-#define MAX_PWM 99;
+#define MAX_PWM 799;
 
 
 float forward ;

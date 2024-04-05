@@ -23,7 +23,7 @@ void motor_init(void)
     
     //Set the prescaler and start the timer
 
-    TCCR1B |= (1 << CS11); // CS12:0 = 010 for prescaler 8
+    TCCR1B |= (1 << CS10); // CS12:0 = 010 for prescaler 8
 
     //Set ICR1 to define the PWM period to achieve a ~10 kHz frequency
     ICR1 = MAX_PWM;
