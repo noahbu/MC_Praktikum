@@ -19,15 +19,15 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING
   7 .debug_abbrev 00001085  00000000  00000000  00004891  2**0
                   CONTENTS, READONLY, DEBUGGING
-  8 .debug_line   000014b6  00000000  00000000  00005916  2**0
+  8 .debug_line   000014aa  00000000  00000000  00005916  2**0
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_frame  00000680  00000000  00000000  00006dcc  2**2
+  9 .debug_frame  00000680  00000000  00000000  00006dc0  2**2
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_str    000009c8  00000000  00000000  0000744c  2**0
+ 10 .debug_str    000009c8  00000000  00000000  00007440  2**0
                   CONTENTS, READONLY, DEBUGGING
- 11 .debug_loc    00001695  00000000  00000000  00007e14  2**0
+ 11 .debug_loc    00001695  00000000  00000000  00007e08  2**0
                   CONTENTS, READONLY, DEBUGGING
- 12 .debug_ranges 00000218  00000000  00000000  000094a9  2**0
+ 12 .debug_ranges 00000218  00000000  00000000  0000949d  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -2018,13 +2018,13 @@ ISR(USART_RXC_vect)
      d0e:	81 11       	cpse	r24, r1
      d10:	05 c0       	rjmp	.+10     	; 0xd1c <spi_select+0xe>
 	{
-		PORTB &= ~(1<<PB4);
-     d12:	c4 98       	cbi	0x18, 4	; 24
 		// CPOL = 0, CPHA = 0
 		SPCR &= ~(1<<CPOL); // idle low for SCK
-     d14:	6b 98       	cbi	0x0d, 3	; 13
+     d12:	6b 98       	cbi	0x0d, 3	; 13
 		SPCR &= ~(1<<CPHA); // clock edge for MOSI data shift = high to low
-     d16:	6a 98       	cbi	0x0d, 2	; 13
+     d14:	6a 98       	cbi	0x0d, 2	; 13
+		PORTB &= ~(1<<PB4);
+     d16:	c4 98       	cbi	0x18, 4	; 24
 		SPCR &= ~(1<<DORD); // MSB first
      d18:	6d 98       	cbi	0x0d, 5	; 13
      d1a:	08 95       	ret
@@ -2034,13 +2034,13 @@ ISR(USART_RXC_vect)
      d1c:	81 30       	cpi	r24, 0x01	; 1
      d1e:	29 f4       	brne	.+10     	; 0xd2a <spi_select+0x1c>
 	{
-		PORTB &= ~(1<<PB0);
-     d20:	c0 98       	cbi	0x18, 0	; 24
 		// CPOL = 0, CPHA = 0
 		SPCR &= ~(1<<CPOL); // idle low for SCK
-     d22:	6b 98       	cbi	0x0d, 3	; 13
+     d20:	6b 98       	cbi	0x0d, 3	; 13
 		SPCR &= ~(1<<CPHA); // clock edge for MOSI data shift = high to low
-     d24:	6a 98       	cbi	0x0d, 2	; 13
+     d22:	6a 98       	cbi	0x0d, 2	; 13
+		PORTB &= ~(1<<PB0);
+     d24:	c0 98       	cbi	0x18, 0	; 24
 		SPCR &= ~(1<<DORD); // MSB first
      d26:	6d 98       	cbi	0x0d, 5	; 13
      d28:	08 95       	ret
@@ -2049,13 +2049,13 @@ ISR(USART_RXC_vect)
      d2a:	82 30       	cpi	r24, 0x02	; 2
      d2c:	29 f4       	brne	.+10     	; 0xd38 <spi_select+0x2a>
 	{
-		PORTB &= ~(1<<PB3);
-     d2e:	c3 98       	cbi	0x18, 3	; 24
 		// CPOL = 1, CPHA = 1
 		SPCR |= (1<<CPOL);
-     d30:	6b 9a       	sbi	0x0d, 3	; 13
+     d2e:	6b 9a       	sbi	0x0d, 3	; 13
 		SPCR |= (1<<CPHA);
-     d32:	6a 9a       	sbi	0x0d, 2	; 13
+     d30:	6a 9a       	sbi	0x0d, 2	; 13
+		PORTB &= ~(1<<PB3);
+     d32:	c3 98       	cbi	0x18, 3	; 24
 		SPCR &= ~(1<<DORD); // MSB first
      d34:	6d 98       	cbi	0x0d, 5	; 13
      d36:	08 95       	ret

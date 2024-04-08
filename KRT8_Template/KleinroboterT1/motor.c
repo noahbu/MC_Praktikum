@@ -159,6 +159,9 @@ pwm_duty gibt den kommandierten PWM-duty-cycle an und hat einen Wertebreich von
 void motor_getVel(float* vMessLinks, float* vMessRechts)
 {
 	/* CODE START */
+
+	// Geschwindigkeit des linken und rechten Rades in cm/s
+	
 	/* CODE END */
 }
 

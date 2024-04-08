@@ -148,7 +148,7 @@ Discarded input sections
  .data          0x00000000        0x0 sensorenSPI.o
  .bss           0x00000000        0x0 sensorenSPI.o
  .text.acc_getData
-                0x00000000       0x76 sensorenSPI.o
+                0x00000000       0x72 sensorenSPI.o
  .text          0x00000000        0x0 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5\libm.a(addsf3.o)
  .data          0x00000000        0x0 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5\libm.a(addsf3.o)
  .bss           0x00000000        0x0 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5\libm.a(addsf3.o)
@@ -934,7 +934,7 @@ END GROUP
  .debug_abbrev  0x00000d6f      0x17c routines/uart.o
  .debug_abbrev  0x00000eeb      0x19a sensorenSPI.o
 
-.debug_line     0x00000000     0x14b6
+.debug_line     0x00000000     0x14aa
  *(.debug_line .debug_line.* .debug_line_end)
  .debug_line    0x00000000       0x1a c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/crtatmega32.o
  .debug_line    0x0000001a      0x197 reglerBalancieren.o
@@ -945,7 +945,7 @@ END GROUP
  .debug_line    0x000009aa      0x2f1 routines/sensorenI2C.o
  .debug_line    0x00000c9b      0x174 routines/trajektorieVorgabe.o
  .debug_line    0x00000e0f      0x305 routines/uart.o
- .debug_line    0x00001114      0x3a2 sensorenSPI.o
+ .debug_line    0x00001114      0x396 sensorenSPI.o
 
 .debug_frame    0x00000000      0x680
  *(.debug_frame)

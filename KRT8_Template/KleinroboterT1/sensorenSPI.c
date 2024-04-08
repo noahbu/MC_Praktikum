@@ -141,27 +141,27 @@ void spi_select(uint8_t spiSensorId)
 
 	if(spiSensorId == FLAG_SPI_QDEC_L)
 	{
-		PORTB &= ~(1<<PB4);
 		// CPOL = 0, CPHA = 0
 		SPCR &= ~(1<<CPOL); // idle low for SCK
 		SPCR &= ~(1<<CPHA); // clock edge for MOSI data shift = high to low
+		PORTB &= ~(1<<PB4);
 		SPCR &= ~(1<<DORD); // MSB first
 
 	}
 	else if(spiSensorId == FLAG_SPI_QDEC_R)
 	{
-		PORTB &= ~(1<<PB0);
 		// CPOL = 0, CPHA = 0
 		SPCR &= ~(1<<CPOL); // idle low for SCK
 		SPCR &= ~(1<<CPHA); // clock edge for MOSI data shift = high to low
+		PORTB &= ~(1<<PB0);
 		SPCR &= ~(1<<DORD); // MSB first
 	}
 	else if(spiSensorId == FLAG_SPI_ACC)
 	{
-		PORTB &= ~(1<<PB3);
 		// CPOL = 1, CPHA = 1
 		SPCR |= (1<<CPOL);
 		SPCR |= (1<<CPHA);
+		PORTB &= ~(1<<PB3);
 		SPCR &= ~(1<<DORD); // MSB first
 
 	}
@@ -234,10 +234,6 @@ void acc_writeRegister(uint8_t registerByte, uint8_t data)
 void acc_getData(int16_t *accData)
 {
 	/* CODE START */
-
-	// CPOL = 1, CPHA = 1
-	SPCR |= (1<<CPOL);
-	SPCR |= (1<<CPHA);
 	
 	// X, Y, Z können gleichzeitig ausgelesen werden durch senden von 0xF2
 	// Daten zusammensetzen
