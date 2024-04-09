@@ -110,21 +110,37 @@ int main(void)
 				
 				motor_manualCtrl();
 
+				//motor_setVel(50.0, 50.0);
+
+				//char buffer[256];
+				
+
 			
 				// print encoder values in UART
-				int32_t countsL = qdec_getCounts(FLAG_SPI_QDEC_L);
-				int32_t countsR = qdec_getCounts(FLAG_SPI_QDEC_R);
+				//int32_t countsL = qdec_getCounts(FLAG_SPI_QDEC_L);
+				//int32_t countsR = qdec_getCounts(FLAG_SPI_QDEC_R);
 
-				char buffer[128];
+				//  print velocity values
+				//float vL, vR;
+				//motor_getVel(&vL, &vR);
+
+				// get v soll values
+
+			
+				//snprintf(buffer, sizeof(buffer), "L: %.2f, R: %.2f \r\n", vL, vL);
+				//printf(buffer, "L: %.2f, R: %.2f , PWM_L: %.2f, PWM_R: %.2f \r\n", vL, vR, pwm_duty_L, pwm_duty_R);
+
+				//sprintf(buffer, "v_ist_L: %.2f, v_ist_R: %.2f v_soll: %.2f \r\n", vL, vR, vel_L);
 				// Assuming you want each number to occupy exactly 6 characters (+/- included), adjust the 6 as needed
-				snprintf(buffer, sizeof(buffer), "L: %6ld, R: %6ld \r\n", countsL, countsR);
+				//snprintf(buffer, sizeof(buffer), "L: %6ld, R: %6ld \r\n", countsL, countsR);
 	
 				// print acc values in UART
 				//int16_t accData[3]; // Array to hold accelerometer data
     			//acc_getData(accData); // Fetch the accelerometer data
 
 				//snprintf(buffer, sizeof(buffer), "Acc X: %d, Y: %d, Z: %d\r\n", accData[0], accData[1], accData[2]);
-				uart_puts((uint8_t*)buffer);
+
+				//uart_puts((uint8_t*)buffer);
 
 				
 

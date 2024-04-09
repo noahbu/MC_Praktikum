@@ -1,6 +1,20 @@
 #include "motor.h"
 
 /* CODE START */
+
+
+const float mv_L = 8.097e-3;
+const float mv_R = 8.097e-3;
+const float cv_L = 1.214e-2;
+const float cv_R = 1.214e-2;
+
+/*
+const float mv_L = 0.0067;
+const float cv_L = 0.0556;
+const float mv_R = 0.0064;
+const float cv_R = 0.0747;
+*/
+const float U_nom = 8.2f;
 /* CODE END */
 
 /* Initialisierungsroutine f�r die Motoransteuerung
@@ -40,6 +54,34 @@ void motor_init(void)
 void motor_setVel(float vSollLinks, float vSollRechts)		// vSollLinks und vSollRechts in cm/s
 {
 	/* CODE START */
+
+	float U_nom = 8.3; // [V] Nominal voltage
+	float U_aktuell;
+	U_aktuell = akku_voltage(); //
+
+	float sgn_L = 0;
+	float sgn_R = 0;
+
+	if(vSollLinks > 0) sgn_L = -1;
+	else if(vSollLinks < 0) sgn_L = 1;
+
+	if(vSollRechts > 0) sgn_R = 1;
+	else if(vSollRechts < 0) sgn_R = -1;
+
+
+
+    // Convert the target speeds to PWM duty cycle using the motor characteristics.
+    float pwmDutyL = (U_nom/U_aktuell) * (mv_L * vSollLinks + cv_L * sgn_L);
+    float pwmDutyR = (U_nom/U_aktuell) * (mv_R * vSollRechts + cv_R * sgn_R);
+
+
+    // The direction is determined by the sign of vSollLinks and vSollRechts
+    // If negative, we need to drive the motor in reverse.
+
+    // Apply the PWM duty cycle to the motors, ensuring direction is handled.
+    motor_pwm(FLAG_L, pwmDutyL);
+    motor_pwm(FLAG_R, pwmDutyR);
+
 	/* CODE END */		
 }
 
@@ -54,8 +96,11 @@ void motor_manualCtrl(void)
 	// jeder wert hat einen Bereich von -1 bis 1, und 0 lässt die motoren stehen
 
 	// Werte für die Motoren
-	float pwm_duty_L = 0;
-	float pwm_duty_R = 0;
+	//pwm_duty_L = 0;
+	//pwm_duty_R = 0;
+
+	float vel_L = 0;
+	float vel_R = 0;
 
 	//werte für die tasten sind im header definiert
 
@@ -64,21 +109,20 @@ void motor_manualCtrl(void)
 
 	switch (data)
 	{
-	case 'd':
-		forward += 0.01;
-		break;
-	case 'a':
-		backward += 0.01;
-		break;
 	case 'w':
-		left += 0.01;
+		forward += 1.0;
 		break;
 	case 's':
-		right += 0.01;
+		forward -= 1.0;
+		break;
+	case 'a':
+		left += 1.0;
+		break;
+	case 'd':
+		left -= 1.0;
 		break;
 	case ' ':
 		forward = 0;
-		backward = 0;
 		left = 0;
 		right = 0;
 		break;
@@ -88,26 +132,33 @@ void motor_manualCtrl(void)
 	}
 
 	// Berechnung der PWM Werte
-	pwm_duty_R = forward - backward + left - right;
-	pwm_duty_L = forward - backward - left + right;
+	//pwm_duty_R = forward - backward + left - right;
+	//pwm_duty_L = forward - backward - left + right;
 
+	//vel_R = forward - backward + left - right;
+	//vel_L = forward - backward - left + right;
 
+	vel_R = forward -left;
+	vel_L = forward +left;
 
-	//char buffer[64]; // Buffer to hold the formatted string
+	char buffer[150];
 
-    // Format and send pwm_duty_L
-    //sprintf(buffer, "%f", pwm_duty_L);
-    //uart_puts((uint8_t *)buffer);
-    //uart_puts((uint8_t *)"\n\r"); // New line and carriage return for clarity
+	float v_ist_L, v_ist_R;
+	motor_getVel(&v_ist_L, &v_ist_R);
 
-    // Format and send pwm_duty_R
-    //sprintf(buffer, "%f", pwm_duty_R);
-    //uart_puts((uint8_t *)buffer);
-    //uart_puts((uint8_t *)"\n\r"); // New line and carriage return
+	snprintf(buffer, sizeof(buffer), "L_ist: %.2f, L_soll: %.2f , R_ist: %.2f, R_soll: %.2f \r\n", v_ist_L, vel_L, v_ist_R, vel_R);
+	uart_puts((uint8_t*)buffer);
 
 	// Werte an die Motoren übergeben
-	motor_pwm(FLAG_L, pwm_duty_L);
-	motor_pwm(FLAG_R, pwm_duty_R);
+	//motor_pwm(FLAG_L, vel_L);
+	//motor_pwm(FLAG_R, vel_R);
+
+	//motor_pwm(FLAG_L, 50);
+	//motor_pwm(FLAG_R, 50);
+
+	//velocity control
+
+	motor_setVel(vel_L, vel_R);
 
 	/* CODE END */
 }
@@ -118,37 +169,33 @@ void motor_manualCtrl(void)
 void motor_pwm(uint8_t motorId, float pwm_duty)
 {
 	/* CODE START */
-/*
-angesprochen werden können. Das Argument sideId ist hierbei ein unsigned integer, der
-die anzusprechende Seite identifiziert, z. B. 0 für links und 1 für rechts. Das Argument
-pwm_duty gibt den kommandierten PWM-duty-cycle an und hat einen Wertebreich von
--1 (volle Rückwärtsfahrt) bis +1 (volle Vorwärtsfahrt).*/
+
+	if(pwm_duty > 1) pwm_duty = 1;
+	if(pwm_duty < -1) pwm_duty = -1;
 
 	if(motorId == FLAG_L)
 	{
-		if(pwm_duty < 0)
+		if(pwm_duty > 0)
 		{
 			PORTC |= (1<<PC7); // Set the direction to backward
-			OCR1A = -pwm_duty*MAX_PWM; // Set the duty cycle
 		}
 		else
 		{
 			PORTC &= ~(1<<PC7); // Set the direction to forward
-			OCR1A = pwm_duty*MAX_PWM; // Set the duty cycle
 		}
+		OCR1A = fabs(pwm_duty)*MAX_PWM; // Set the duty cycle
 	}
 	else if(motorId == FLAG_R)
 	{
 		if(pwm_duty < 0)
 		{
 			PORTC |= (1<<PC6); // Set the direction to backward
-			OCR1B = -pwm_duty*MAX_PWM; // Set the duty cycle
-		}
+		} 
 		else
 		{
 			PORTC &= ~(1<<PC6); // Set the direction to forward
-			OCR1B = pwm_duty*MAX_PWM; // Set the duty cycle
 		}
+		OCR1B = fabs(pwm_duty)*MAX_PWM; // Set the duty cycle
 	}
 	/* CODE END */
 }
@@ -161,9 +208,31 @@ void motor_getVel(float* vMessLinks, float* vMessRechts)
 	/* CODE START */
 
 	// Geschwindigkeit des linken und rechten Rades in cm/s
-	
-	/* CODE END */
+
+    static int32_t lastCountLeft = 0;
+    static int32_t lastCountRight = 0;
+
+    int32_t currentCountLeft = qdec_getCounts(FLAG_SPI_QDEC_L);
+    int32_t currentCountRight = qdec_getCounts(FLAG_SPI_QDEC_R);
+
+    // Berechnen Sie die zurückgelegte Strecke für jedes Rad
+    float distancePerCountLeft = (PI * D_RAD_L) / COUNTS_PER_REV;
+    float distancePerCountRight = (PI * D_RAD_R) / COUNTS_PER_REV; 
+
+    int32_t deltaCountLeft = currentCountLeft - lastCountLeft;
+    int32_t deltaCountRight = currentCountRight - lastCountRight;
+
+    // Geschwindigkeit in cm/s berechnen
+    *vMessLinks = (distancePerCountLeft * deltaCountLeft) / T_SAMPLE ;
+    *vMessRechts = (distancePerCountRight * deltaCountRight) / T_SAMPLE;
+
+    // Aktualisieren der letzten Count-Werte für die nächste Messung
+    lastCountLeft = currentCountLeft;
+    lastCountRight = currentCountRight;
 }
+
+	/* CODE END */
+
 
 /* CODE START */
 /* CODE END */

@@ -21,11 +21,17 @@
 #define FLAG_R 1
 
 /* CODE START */
-#define MAX_PWM 799;
+#define MAX_PWM 799
+
+#define COUNTS_PER_REV 3600  // 3600 counts per revolution
+
+float pwm_duty_L;
+float pwm_duty_R;
 
 
-float forward ;
-float backward;
+
+
+float forward;
 float left;
 float right;
 
