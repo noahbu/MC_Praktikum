@@ -3,17 +3,8 @@
 /* CODE START */
 
 
-const float mv_L = 8.097e-3;
-const float mv_R = 8.097e-3;
-const float cv_L = 1.214e-2;
-const float cv_R = 1.214e-2;
 
-/*
-const float mv_L = 0.0067;
-const float cv_L = 0.0556;
-const float mv_R = 0.0064;
-const float cv_R = 0.0747;
-*/
+
 const float U_nom = 8.2f;
 /* CODE END */
 
@@ -56,6 +47,18 @@ void motor_setVel(float vSollLinks, float vSollRechts)		// vSollLinks und vSollR
 	/* CODE START */
 
 	float U_nom = 8.3; // [V] Nominal voltage
+	const float mv_L = 8.097e-3;
+	const float mv_R = 8.097e-3;
+	const float cv_L = 1.214e-2;
+	const float cv_R = 1.214e-2;
+
+	/*
+	const float mv_L = 0.0067;
+	const float cv_L = 0.0556;
+	const float mv_R = 0.0064;
+	const float cv_R = 0.0747;
+	*/
+
 	float U_aktuell;
 	U_aktuell = akku_voltage(); //
 
@@ -68,7 +71,7 @@ void motor_setVel(float vSollLinks, float vSollRechts)		// vSollLinks und vSollR
 	if(vSollRechts > 0) sgn_R = 1;
 	else if(vSollRechts < 0) sgn_R = -1;
 
-
+	// TODO: add pwm = 0 for small velocities
 
     // Convert the target speeds to PWM duty cycle using the motor characteristics.
     float pwmDutyL = (U_nom/U_aktuell) * (mv_L * vSollLinks + cv_L * sgn_L);
@@ -141,6 +144,7 @@ void motor_manualCtrl(void)
 	vel_R = forward -left;
 	vel_L = forward +left;
 
+	/*
 	char buffer[150];
 
 	float v_ist_L, v_ist_R;
@@ -148,6 +152,7 @@ void motor_manualCtrl(void)
 
 	snprintf(buffer, sizeof(buffer), "L_ist: %.2f, L_soll: %.2f , R_ist: %.2f, R_soll: %.2f \r\n", v_ist_L, vel_L, v_ist_R, vel_R);
 	uart_puts((uint8_t*)buffer);
+	*/
 
 	// Werte an die Motoren übergeben
 	//motor_pwm(FLAG_L, vel_L);

@@ -108,7 +108,14 @@ int main(void)
 			} else if(activeController == TESTING) {
 				/* CODE START */
 				
-				motor_manualCtrl();
+				//motor_manualCtrl();
+
+				//float alpha = 0.0f;
+				//float alpha_dot = 0.0f;
+				//float alpha_soll = 0.0f;
+				float alphaCompFilter = 0.0f;
+				float alpha_dot = 0.0f;
+				reglerBalancieren_komplementaerFilter(&alphaCompFilter, &alpha_dot);
 
 				//motor_setVel(50.0, 50.0);
 

@@ -1,27 +1,84 @@
 #include "reglerBalancieren.h"
 
 /* CODE START */
+float cumulativeAngleGyro = 0.0; // Cumulative angle in degrees
+float alpha_Filter = 0.0; // Complementary filter angle
+
+float z1; // PT2-Zustand 1
+float z2; // PT2-Zustand 2
 /* CODE END */
 
 
-/* Tiefpassfilter 2. Ordnung welcher vom Komplementärfilter verwendet wird */
+/* Tiefpassfilter 2. Ordnung welcher vom Komplementï¿½rfilter verwendet wird */
 float reglerBalancieren_PT2(float x)
-{	// PT2-Glied mit Eckfrequenz wie über COEFF_x bestimmt
+{	// PT2-Glied mit Eckfrequenz wie ï¿½ber COEFF_x bestimmt
 	/* CODE START */
+
+
+	// PT2-Filterkoeffizienten
+	float y_filt = 0.0f;
+
+	//float u_filt = 0.0f;
+
+	float filter_a2 = -1.9644605802;
+	float filter_a3 = 0.9650811739;
+	float filter_b1 = 1.0000000000;
+	float filter_b2 = 2.0000000000;
+	float filter_b3 = 1.0000000000;
+	float filter_g = 0.0001551484;
+
+	y_filt = filter_g*filter_b1*x+z1;
+	z1 = filter_g*filter_b2*x + z2 + (-filter_a2*y_filt);
+	z2 = filter_g*filter_b3*x + (-filter_a3*y_filt);
+
+	return y_filt;
+
 	/* CODE END */
 }
 
-/* Komplementärfilter zur Fusion der zwei Messungen
-   OUTPUTS: - alphaCompFilter:	Geschätzter Winkel
+/* Komplementï¿½rfilter zur Fusion der zwei Messungen
+   OUTPUTS: - alphaCompFilter:	Geschï¿½tzter Winkel
 			- alpha_dot:		Gemessene Drehrate */
-void reglerBalancieren_komplementaerFilter(float* alphaCompFilter, float* alpha_dot) 
-{
-	/* CODE START */
-	/* CODE END */
+void reglerBalancieren_komplementaerFilter(float* alphaCompFilter, float* alpha_dot) {
+    /* CODE START */
+
+    float ALPHA_COMP = 1.0f; // Complementary filter factor
+    float GYRO_SCALE_FACTOR = (1000.0f / 32768.0f); // Gyro scale factor for 1000 degrees/sec full scale
+
+    // Read accelerometer and gyroscope data
+    int16_t accData[3]; // Array to hold accelerometer data
+    acc_getData(accData); // Fetch the accelerometer data
+
+    int16_t gyroData[3]; // Array to hold gyroscope data
+    gyro_getData(gyroData);
+
+    // Calculate angle from accelerometer data
+
+    //float alpha_acc = atan2f(accData[0], sqrt(accData[1] * accData[1] + accData[2] * accData[2]));
+	float alpha_acc = atan2f(accData[2], accData[0]);
+    alpha_acc *= (180.0f / M_PI); // Convert to degrees
+
+    // Integrate gyroscope data to get angle
+    // Assuming gyroData[1] corresponds to the axis you're integrating for
+    cumulativeAngleGyro += (gyroData[1] * GYRO_SCALE_FACTOR) * T_SAMPLE;
+
+    // Apply the complementary filter
+    *alphaCompFilter = ALPHA_COMP * reglerBalancieren_PT2(alpha_acc - cumulativeAngleGyro)+cumulativeAngleGyro;
+
+    // For debugging, send data over UART
+
+    char buffer[150];
+    snprintf(buffer, sizeof(buffer), "%3.5f,%3.5f,%3.5f\n\r", alpha_acc, cumulativeAngleGyro, *alphaCompFilter);
+    uart_puts((uint8_t*)buffer);
+
+    // Optional: Store the gyro rate if needed
+    *alpha_dot = gyroData[1] * GYRO_SCALE_FACTOR;
+
+    /* CODE END */
 }
 
 /* Winkel-Regler (innere Schleife der Kaskade)
-	INPUTS: - alpha:		Geschätzer Winkel
+	INPUTS: - alpha:		Geschï¿½tzer Winkel
 			- alpha_dot:	Gemessene Winkelgeschwindigkeit
 			- alpha_soll:	Sollwinkel */
 void reglerBalancieren_winkelRegler(float alpha, float alpha_dot, float alpha_soll) 
@@ -30,13 +87,13 @@ void reglerBalancieren_winkelRegler(float alpha, float alpha_dot, float alpha_so
 	/* CODE END */	
 }
 
-/* Geschwindigkeitsregler (Äußere Schleife der Kaskade)
+/* Geschwindigkeitsregler (ï¿½uï¿½ere Schleife der Kaskade)
 	INPUTS: - vRad:			Gemessene Radgeschwindigkeit
-			- alpha:		Geschätzter Winkel
+			- alpha:		Geschï¿½tzter Winkel
 			- alpha_dot:	Gemessene Winkelgeschwindigkeit */
 void reglerBalancieren_geschwindigkeitsRegler(float vRad, float alpha, float alpha_dot) 
 {		
-	// Zustände für Umfalllogik des Geschwindigkeitsreglers
+	// Zustï¿½nde fï¿½r Umfalllogik des Geschwindigkeitsreglers
 	static int8_t istUmgefallen = 0; // Umfallzustand des Roboters
 	static int32_t reactivateCount = 0;
 	/* CODE START */
@@ -45,13 +102,13 @@ void reglerBalancieren_geschwindigkeitsRegler(float vRad, float alpha, float alp
 	if (!istUmgefallen)	{ // Roboter aktuell nicht umgefallen		
 		/* Teste ob der Roboter inzwischen umgefallen ist */
 		if (fabs(alpha) < ALPHA_ABS_DEACTIVATE) { // Roboter ist NICHT umgefallen
-			/* Hier muss die äußere Kaskade (der PID Geschwindigkeitsregler) implementiert werden */
+			/* Hier muss die ï¿½uï¿½ere Kaskade (der PID Geschwindigkeitsregler) implementiert werden */
 			/* CODE START */
 			/* CODE END */		
 		} else { // Der Roboter ist gerade umgefallen, Flag setzen
 			istUmgefallen = 1;
 			
-			// Über UART diesen Zustand übermitteln
+			// ï¿½ber UART diesen Zustand ï¿½bermitteln
 			char send[50];
 			sprintf(send, "Roboter ist umgefallen\r\n");
 			uart_puts((uint8_t*)send);
@@ -59,7 +116,7 @@ void reglerBalancieren_geschwindigkeitsRegler(float vRad, float alpha, float alp
 			// Motoren ausschalten
 			motor_setVel(0.0f, 0.0f);			
 		}
-	} else { /* Roboter ist immer noch umgefallen, Überwachung ob der Roboter wieder aufgerichtet wurde
+	} else { /* Roboter ist immer noch umgefallen, ï¿½berwachung ob der Roboter wieder aufgerichtet wurde
 				--> Roboter muss mindestens 2 Sekunden lang in aufrechter Position sein */
 		/* Wurde der Roboter wieder aufgerichtet? */
 		if (fabs(alpha) < ALPHA_ABS_ACTIVATE)
@@ -89,10 +146,10 @@ void reglerBalancieren_init(void)
 	/* CODE END */
 }
 
-/* Ausführung des Reglers zum Balancieren 
+/* Ausfï¿½hrung des Reglers zum Balancieren 
 	- Sensordaten lesen 
-	- Komplementärfilter ausführen
-	- Regler ausführen */
+	- Komplementï¿½rfilter ausfï¿½hren
+	- Regler ausfï¿½hren */
 void reglerBalancieren_regelung(void) 
 {
 	/* CODE START */
