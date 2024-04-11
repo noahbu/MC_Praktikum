@@ -26,7 +26,7 @@ volatile int8_t sampleFlag = 0;
 						- BALANCIERREGLER
 						- TRAJEKTORIENREGLER
 						- TESTING */
-uint8_t activeController = TESTING;
+uint8_t activeController = BALANCIERREGLER;
 
 /* Hauptfunktion */
 int main(void)
@@ -108,14 +108,9 @@ int main(void)
 			} else if(activeController == TESTING) {
 				/* CODE START */
 				
-				//motor_manualCtrl();
+				motor_manualCtrl();
 
-				//float alpha = 0.0f;
-				//float alpha_dot = 0.0f;
-				//float alpha_soll = 0.0f;
-				float alphaCompFilter = 0.0f;
-				float alpha_dot = 0.0f;
-				reglerBalancieren_komplementaerFilter(&alphaCompFilter, &alpha_dot);
+				//reglerBalancieren_geschwindigkeitsRegler(0 , 0, 0);
 
 				//motor_setVel(50.0, 50.0);
 

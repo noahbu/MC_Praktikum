@@ -77,7 +77,19 @@ void motor_setVel(float vSollLinks, float vSollRechts)		// vSollLinks und vSollR
     float pwmDutyL = (U_nom/U_aktuell) * (mv_L * vSollLinks + cv_L * sgn_L);
     float pwmDutyR = (U_nom/U_aktuell) * (mv_R * vSollRechts + cv_R * sgn_R);
 
+	if(fabs(vSollLinks) < 0.1) pwmDutyL = 0;
+	if(fabs(vSollRechts) < 0.1) pwmDutyR  = 0;
 
+	// tuning the linear function to find mv_L and cv_L and mv_R and cv_R
+
+	/*
+	float v_ist_L, v_ist_R;
+	motor_getVel(&v_ist_L, &v_ist_R);
+
+	char buffer[150];
+    snprintf(buffer, sizeof(buffer), "%3.5f,%3.5f,%3.5f\n\r", U_aktuell, v_ist_L, pwm_duty_L);
+    uart_puts((uint8_t*)buffer);
+	*/
     // The direction is determined by the sign of vSollLinks and vSollRechts
     // If negative, we need to drive the motor in reverse.
 

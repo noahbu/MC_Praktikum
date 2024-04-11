@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "uart.h": "c"
+        "uart.h": "c",
+        "sensorenspi.h": "c",
+        "motor.h": "c"
     }
 }
