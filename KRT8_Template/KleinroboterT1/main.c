@@ -21,12 +21,14 @@
 /* Sample Zeit Flag, TRUE Samplezeit */
 volatile int8_t sampleFlag = 0;
 
+
+
 /* Auswahl des Reglers welcher aktiv sein soll
 	Zur Auswahl stehen:	- MANUELLE_STEUERUNG
 						- BALANCIERREGLER
 						- TRAJEKTORIENREGLER
 						- TESTING */
-uint8_t activeController = BALANCIERREGLER;
+	uint8_t activeController = BALANCIERREGLER;
 
 /* Hauptfunktion */
 int main(void)
@@ -103,12 +105,25 @@ int main(void)
 					Bitte die zum jeweils ben�tigten Funktionen einkommentieren */
 				float u1_B, u2_B, x1_B, x2_B, x3_B;
 				reglerTrajektorienfolge_beobachter(&u1_B, &u2_B, &x1_B, &x2_B, &x3_B);
-				// reglerTrajektorienfolge_steuerung();
+
+				
+				// printing the values of x1, x2, x3
+				//char buffer[150];
+				//snprintf(buffer, sizeof(buffer), "u1_b: %5.2f,  u2_b: %5.2f \n\r", u1_B, u2_B);
+				//snprintf(buffer, sizeof(buffer), "u1_b: %f,  u2_b: %f, x1_b: %f ,  x2_b: %f ,  x3_b: %f  \n\r", u1_B, u2_B, x1_B, x2_B, x3_B);
+				//sprintf(buffer, "%3.2f, %3.2f, %3.2f, %3.2f, %3.2f\n\r", u1_B, u2_B, x1_B, x2_B, x3_B);
+				//uart_puts((uint8_t*)buffer);
+
+				//reglerTrajektorienfolge_steuerung();
 				reglerTrajektorienfolge_regelung(u1_B, u2_B, x1_B, x2_B, x3_B);
 			} else if(activeController == TESTING) {
 				/* CODE START */
 				
 				motor_manualCtrl();
+
+				
+
+				//reglerTrajektorienfolge_beobachter(&u1_B, &u2_B, &x1_B, &x2_B, &x3_B);
 
 				//reglerBalancieren_geschwindigkeitsRegler(0 , 0, 0);
 

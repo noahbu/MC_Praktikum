@@ -101,18 +101,6 @@ void reglerBalancieren_winkelRegler(float alpha, float alpha_dot, float alpha_so
 	// Calculate the angle error
     float angle_error = alpha_soll - alpha;
 
-	// preventing integral windup
-	// Integral of angle error
-	/*
-	float windup_guard_angle = 90.0f;
-	if (fabs(integral_of_angle_error) < windup_guard_angle) {
-		integral_of_angle_error += angle_error * T_SAMPLE;
-	} else {
-		// Optionally reset the integral if you are outside the control range
-		integral_of_angle_error = 0.0f;
-	}
-	*/
-
 	//without integral windup prevention
 	integral_of_angle_error += angle_error * T_SAMPLE;
 
@@ -125,13 +113,9 @@ void reglerBalancieren_winkelRegler(float alpha, float alpha_dot, float alpha_so
     
     // Calculate control output, which is the desired wheel velocity
     float vRad_soll = P_term + I_term + D_term;
-
-	motor_setVel(vRad_soll, vRad_soll);
-/*
-	char buffer[128];
-    snprintf(buffer, sizeof(buffer), "vRad_soll = %3.5f\n\r", vRad_soll);
-    uart_puts((uint8_t*)buffer);
-*/
+	float vRad_R = vRad_soll+left;
+	float vRad_L = vRad_soll-left;
+	motor_setVel(vRad_L, vRad_R);
 
 	/* CODE END */	
 }
@@ -156,20 +140,16 @@ void reglerBalancieren_geschwindigkeitsRegler(float vRad, float alpha, float alp
 
 
 			// PID controller constants from script
-			float Kp_v = 0.3531f;
-			float Ki_v = 0.6757f;
-			float Kd_v = 0.0006f;
-
-			// PID controller tuned
-			//float Kp_v = 0.3031f; // was working for half error and positive D-term
-			//float Kp_v = 0.2231f;
+			//float Kp_v = 0.3531f;
 			//float Ki_v = 0.6757f;
 			//float Kd_v = 0.0006f;
 
-			float l_v = 5.0f; // distance between axis and point to control around
+			// PID controller tuned
+			float Kp_v = 0.5991f;
+			float Ki_v = 0.7757f;
+			float Kd_v = 0.0156f;
 
-			float vel_L = 0;
-			float vel_R = 0;
+			float l_v = 5.0f; // distance between axis and point to control around
 
 			//werte für die tasten sind im header definiert
 
@@ -200,34 +180,13 @@ void reglerBalancieren_geschwindigkeitsRegler(float vRad, float alpha, float alp
 				break;
 			}
 
-			// Berechnung der PWM Werte
-			//pwm_duty_R = forward - backward + left - right;
-			//pwm_duty_L = forward - backward - left + right;
-
-			//vel_R = forward - backward + left - right;
-			//vel_L = forward - backward - left + right;
-
-			vel_R = forward -left;
-			vel_L = forward +left;
-
 
 			float vSoll = forward; // Desired velocity
 			
 			float drad = alpha_dot * (M_PI / 180.0); // Convert angle to radians 
 
-
 			float velocity_error =  vSoll -  (vRad + (l_v + (D_RAD_L/2.0)) * drad); // Calculate velocity error
 
-			// preventing integral windup
-			/*
-			float windup_guard_velocity = 100.0f;
-			if (fabs(integral_of_velocity_error) < windup_guard_velocity) {
-        		integral_of_velocity_error += velocity_error * T_SAMPLE;
-    		} else {
-        		// Optionally reset the integral if you are outside the control range
-        		integral_of_velocity_error = 0.0f;
-    		}
-			*/
 			// without integral windup
 			integral_of_velocity_error += velocity_error * T_SAMPLE;
 
@@ -306,9 +265,6 @@ void reglerBalancieren_init(void)
 
 	cumulativeAngleGyro = alpha_acc; // Set the initial angle to the accelerometer angle
 
-	
-
-
 	/* CODE END */
 }
 
@@ -331,9 +287,9 @@ void reglerBalancieren_regelung(void)
 
 	reglerBalancieren_geschwindigkeitsRegler(v_rad, alphaCompFilter, alpha_dot); // Execute the angle controller
 
-	char buffer[128];
-    snprintf(buffer, sizeof(buffer), "vRad = %3.5f, Alpha: %3.5f\n\r", v_rad, alphaCompFilter);
-    uart_puts((uint8_t*)buffer);
+	//char buffer[128];
+    //snprintf(buffer, sizeof(buffer), "vRad = %3.5f, Alpha: %3.5f\n\r", v_rad, alphaCompFilter);
+    //uart_puts((uint8_t*)buffer);
 	
 	/* CODE END */
 }

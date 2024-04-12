@@ -45,19 +45,21 @@ void motor_init(void)
 void motor_setVel(float vSollLinks, float vSollRechts)		// vSollLinks und vSollRechts in cm/s
 {
 	/* CODE START */
-
-	float U_nom = 8.3; // [V] Nominal voltage
+	
+	float U_nom = 7.83; // [V] Nominal voltage
+	// from script
+	/*
 	const float mv_L = 8.097e-3;
 	const float mv_R = 8.097e-3;
-	const float cv_L = 1.214e-2;
+	const float cv_L = 1.214e-2; // verringern damit der motor später reagiert
 	const float cv_R = 1.214e-2;
-
-	/*
-	const float mv_L = 0.0067;
-	const float cv_L = 0.0556;
-	const float mv_R = 0.0064;
-	const float cv_R = 0.0747;
 	*/
+	//tuning v1 linear regression on matlab
+	const float mv_L = 0.008222;
+	const float cv_L = 0.017105; // verringern damit der motor später reagiert
+	const float mv_R = 0.008222; // From ActualVelocity coefficient
+	const float cv_R = 0.017105; // From DesiredVelocity coefficient
+
 
 	float U_aktuell;
 	U_aktuell = akku_voltage(); //
@@ -65,31 +67,37 @@ void motor_setVel(float vSollLinks, float vSollRechts)		// vSollLinks und vSollR
 	float sgn_L = 0;
 	float sgn_R = 0;
 
-	if(vSollLinks > 0) sgn_L = -1;
-	else if(vSollLinks < 0) sgn_L = 1;
+	if(vSollLinks > 0) sgn_L = 1;
+	else if(vSollLinks < 0) sgn_L = -1;
 
-	if(vSollRechts > 0) sgn_R = 1;
-	else if(vSollRechts < 0) sgn_R = -1;
+	//if(vSollRechts > 0) sgn_R = 1;
+	//else if(vSollRechts < 0) sgn_R = -1;
+	
 
 	// TODO: add pwm = 0 for small velocities
-
-    // Convert the target speeds to PWM duty cycle using the motor characteristics.
-    float pwmDutyL = (U_nom/U_aktuell) * (mv_L * vSollLinks + cv_L * sgn_L);
-    float pwmDutyR = (U_nom/U_aktuell) * (mv_R * vSollRechts + cv_R * sgn_R);
-
-	if(fabs(vSollLinks) < 0.1) pwmDutyL = 0;
-	if(fabs(vSollRechts) < 0.1) pwmDutyR  = 0;
-
-	// tuning the linear function to find mv_L and cv_L and mv_R and cv_R
-
-	/*
 	float v_ist_L, v_ist_R;
 	motor_getVel(&v_ist_L, &v_ist_R);
 
+    // Convert the target speeds to PWM duty cycle using the motor characteristics.
+    float pwmDutyL = (U_nom/U_aktuell) * (mv_L * vSollLinks + cv_L * sgn_L);
+	float pwmDutyR = (U_nom/U_aktuell) * (mv_R * vSollRechts + cv_R * sgn_R);
+	//float pwmDutyL = (U_nom/U_aktuell) * (0.0078464 * vSollLinks + 0.20869 * U_aktuell + 0.00082774 * v_ist_L - 1.6747);
+	//float pwmDutyR = (U_nom/U_aktuell) * (0.0078464 * vSollRechts + 0.20869 * U_aktuell + 0.00082774 * v_ist_R - 1.6747);
+
+
+    
+
+	//if(fabs(vSollLinks) < 0.1) pwmDutyL = 0;
+	//if(fabs(vSollRechts) < 0.1) pwmDutyR  = 0;
+
+	// tuning the linear function to find mv_L and cv_L and mv_R and cv_R
+
+
+
 	char buffer[150];
-    snprintf(buffer, sizeof(buffer), "%3.5f,%3.5f,%3.5f\n\r", U_aktuell, v_ist_L, pwm_duty_L);
+    snprintf(buffer, sizeof(buffer), "%3.5f,%3.5f,%3.5f,%3.5f,%3.5f\n\r", U_aktuell, v_ist_L, vSollLinks, pwmDutyL, sgn_L);
     uart_puts((uint8_t*)buffer);
-	*/
+	
     // The direction is determined by the sign of vSollLinks and vSollRechts
     // If negative, we need to drive the motor in reverse.
 
@@ -125,16 +133,19 @@ void motor_manualCtrl(void)
 	switch (data)
 	{
 	case 'w':
-		forward += 1.0;
+		forward += 3.0;
 		break;
 	case 's':
-		forward -= 1.0;
-		break;
-	case 'a':
-		left += 1.0;
+		forward -= 5.0;
 		break;
 	case 'd':
+		left += 1.0;
+		break;
+	case 'a':
 		left -= 1.0;
+		break;
+	case 'q':
+		left = 0.0;
 		break;
 	case ' ':
 		forward = 0;
@@ -194,25 +205,27 @@ void motor_pwm(uint8_t motorId, float pwm_duty)
 	{
 		if(pwm_duty > 0)
 		{
-			PORTC |= (1<<PC7); // Set the direction to backward
+			PORTC &= ~(1<<PC6);
+			 // Set the direction to backward
 		}
 		else
 		{
-			PORTC &= ~(1<<PC7); // Set the direction to forward
+			PORTC |= (1<<PC6); // Set the direction to forward
 		}
-		OCR1A = fabs(pwm_duty)*MAX_PWM; // Set the duty cycle
+		OCR1B = fabs(pwm_duty)*MAX_PWM; // Set the duty cycle
 	}
 	else if(motorId == FLAG_R)
 	{
 		if(pwm_duty < 0)
 		{
-			PORTC |= (1<<PC6); // Set the direction to backward
+			PORTC &= ~(1<<PC7);
+			 // Set the direction to backward
 		} 
 		else
 		{
-			PORTC &= ~(1<<PC6); // Set the direction to forward
+			PORTC |= (1<<PC7);// Set the direction to forward
 		}
-		OCR1B = fabs(pwm_duty)*MAX_PWM; // Set the duty cycle
+		OCR1A = fabs(pwm_duty)*MAX_PWM; // Set the duty cycle
 	}
 	/* CODE END */
 }
@@ -240,8 +253,9 @@ void motor_getVel(float* vMessLinks, float* vMessRechts)
     int32_t deltaCountRight = currentCountRight - lastCountRight;
 
     // Geschwindigkeit in cm/s berechnen
-    *vMessLinks = (distancePerCountLeft * deltaCountLeft) / T_SAMPLE ;
-    *vMessRechts = (distancePerCountRight * deltaCountRight) / T_SAMPLE;
+    *vMessLinks = (distancePerCountLeft * (float)deltaCountLeft) / T_SAMPLE ;
+    *vMessRechts = (distancePerCountRight * (float)deltaCountRight) / T_SAMPLE;
+
 
     // Aktualisieren der letzten Count-Werte für die nächste Messung
     lastCountLeft = currentCountLeft;

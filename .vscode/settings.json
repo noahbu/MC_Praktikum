@@ -2,6 +2,7 @@
     "files.associations": {
         "uart.h": "c",
         "sensorenspi.h": "c",
-        "motor.h": "c"
+        "motor.h": "c",
+        "reglertrajektorienfolge.h": "c"
     }
 }
